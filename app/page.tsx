@@ -1,7 +1,7 @@
 "use client"
 
 import { AnimatePresence, motion } from "framer-motion"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { DayTimeline } from "@/components/DayTimeline"
 import { FinalReveal } from "@/components/FinalReveal"
 import { FlowerCard } from "@/components/FlowerCard"
@@ -14,8 +14,15 @@ const FINAL_FLOWER_ID = flowers[flowers.length - 1].id
 
 const API = "https://sarah-backend-teji.onrender.com"
 
-function generateId() {
-  return Math.random().toString(36).substring(2, 10).toUpperCase()
+function getVisitorId() {
+  let id = localStorage.getItem("visitorId")
+
+  if (!id) {
+    id = Math.random().toString(36).substring(2, 10).toUpperCase()
+    localStorage.setItem("visitorId", id)
+  }
+
+  return id
 }
 
 export default function Page() {
@@ -24,28 +31,33 @@ export default function Page() {
   const [showGarden, setShowGarden] = useState(false)
   const [showFinal, setShowFinal] = useState(false)
 
-  const [visitorId] = useState(() => generateId())
   const hasFlowers = unlocked.length > 0
 
-  async function handleDiscover() {
-    // 🔥 TRACKING AQUI (primeiro clique real do usuário)
-    try {
-      await fetch(`${API}/session/start`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          visitorId,
-          name: "Visitante",
-          userAgent: navigator.userAgent,
-          startedAt: Date.now(),
-          page: "flores-do-tempo"
-        })
-      })
-    } catch (err) {
-      console.error("Erro tracking:", err)
-    }
+  const [visitorId, setVisitorId] = useState("")
 
-    // sua lógica original continua intacta
+  // =========================
+  // TRACKING INICIAL (1x)
+  // =========================
+  useEffect(() => {
+    const id = getVisitorId()
+    setVisitorId(id)
+
+    fetch(`${API}/session/start`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        visitorId: id,
+        name: "Visitante",
+        userAgent: navigator.userAgent,
+        startedAt: Date.now(),
+        page: "flores-do-tempo"
+      })
+    }).catch(console.error)
+  }, [])
+
+  function handleDiscover() {
     if (unlocked.length > 0) {
       setActive(unlocked[unlocked.length - 1])
     }
@@ -53,38 +65,38 @@ export default function Page() {
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-background">
-      {/* Glow ambiente de fundo */}
+
+      {/* Glow fundo */}
       <div className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/15 blur-[120px]" />
       <div className="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-primary/10 blur-[120px]" />
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col items-center safe-px safe-pt safe-pb">
 
-        {/* Cabeçalho */}
+        {/* HEADER */}
         <motion.header
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.8 }}
           className="flex flex-col items-center pt-6 text-center"
         >
           <motion.div
             className="text-5xl"
-            aria-hidden="true"
             animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 5, repeat: Infinity }}
           >
             🌸
           </motion.div>
 
-          <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-foreground text-glow">
+          <h1 className="mt-5 text-4xl font-semibold text-foreground">
             Flores do Tempo
           </h1>
 
-          <p className="mt-3 text-pretty text-base leading-relaxed text-muted-foreground">
+          <p className="mt-3 text-muted-foreground">
             Uma nova flor aparecerá a cada dia.
           </p>
         </motion.header>
 
-        {/* Botão principal */}
+        {/* BOTÃO PRINCIPAL */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -92,40 +104,30 @@ export default function Page() {
           className="mt-9 w-full"
         >
           <button
-            type="button"
             onClick={handleDiscover}
             disabled={!ready}
-            className="group relative flex w-full items-center justify-center overflow-hidden rounded-full border border-primary/40 bg-primary px-8 py-4 text-base font-medium text-primary-foreground transition-all duration-300 active:scale-[0.97] disabled:opacity-50"
+            className="relative w-full rounded-full bg-primary px-8 py-4 text-primary-foreground transition active:scale-95 disabled:opacity-50"
           >
-            <span
-              className="pointer-events-none absolute inset-0 bg-primary/40 blur-xl"
-              style={{ animation: "pulse-glow 4s ease-in-out infinite" }}
-            />
-
-            <span className="relative">
-              {hasFlowers ? "Descobrir Flor" : "Em breve"}
-            </span>
+            {hasFlowers ? "Descobrir Flor" : "Em breve"}
           </button>
 
-          {ready && hasFlowers && (
+          {hasFlowers && (
             <button
-              type="button"
-              onClick={() => setShowGarden((v) => !v)}
-              className="mx-auto mt-4 block text-sm text-muted-foreground underline-offset-4 transition-colors active:text-primary"
+              onClick={() => setShowGarden(v => !v)}
+              className="mt-4 text-sm text-muted-foreground underline"
             >
               {showGarden ? "Ocultar jardim" : `Ver jardim (${unlocked.length})`}
             </button>
           )}
         </motion.div>
 
-        {/* Jardim */}
+        {/* JARDIM */}
         <AnimatePresence>
-          {showGarden && hasFlowers && (
+          {showGarden && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.5 }}
               className="w-full overflow-hidden"
             >
               <div className="mt-7 grid grid-cols-2 gap-4">
@@ -142,24 +144,24 @@ export default function Page() {
           )}
         </AnimatePresence>
 
-        {/* Timeline */}
+        {/* TIMELINE */}
         <section className="mt-12 w-full">
-          <h2 className="mb-4 text-center text-xs uppercase tracking-[0.22em] text-muted-foreground">
+          <h2 className="mb-4 text-center text-xs uppercase text-muted-foreground">
             Linha do tempo
           </h2>
           <DayTimeline timeline={timeline} onSelect={setActive} />
         </section>
 
-        {/* Footer */}
-        <footer className="fixed bottom-4 left-0 right-0 flex justify-center pointer-events-none">
-          <p className="text-xs font-semibold bg-gradient-to-r from-zinc-200 via-zinc-400 to-red-500 bg-clip-text text-transparent opacity-70 tracking-wide">
+        {/* FOOTER */}
+        <footer className="fixed bottom-4 left-0 right-0 flex justify-center">
+          <p className="text-xs text-muted-foreground">
             Feito por: Alex
           </p>
         </footer>
 
       </div>
 
-      {/* Viewer */}
+      {/* VIEWER */}
       <FlowerViewer
         flower={active}
         finalFlowerId={FINAL_FLOWER_ID}
@@ -170,8 +172,9 @@ export default function Page() {
         }}
       />
 
-      {/* Final */}
+      {/* FINAL EVENT */}
       <FinalReveal open={showFinal} onClose={() => setShowFinal(false)} />
+
     </main>
   )
 }
