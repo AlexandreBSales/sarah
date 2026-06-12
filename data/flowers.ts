@@ -7,7 +7,7 @@ export const flowers: Flower[] = [
     image: "/flowers/rosa-roxa.png",
     unlockDate: "2026-06-12",
     message:
-      "Às vezes, tudo o que uma pessoa precisa é de um pouco de gentileza para lembrar que dias melhores existem.",
+      "Existem recomeços que acontecem devagar, um dia de cada vez. E tudo bem que seja assim.",
   },
   {
     id: 2,
@@ -15,7 +15,7 @@ export const flowers: Flower[] = [
     image: "/flowers/orquidea-roxa.png",
     unlockDate: "2026-06-13",
     message:
-      "Nem todas as pessoas que aparecem em nossa vida ficam por muito tempo. Algumas apenas chegam na hora certa.",
+      "Sarah, espero que você se lembre de que sua história não é definida pelos capítulos que terminaram, mas por todos os que ainda estão por vir.",
   },
   {
     id: 3,
@@ -31,7 +31,7 @@ export const flowers: Flower[] = [
     image: "/flowers/lavanda.png",
     unlockDate: "2026-06-15",
     message:
-      "Existem recomeços que acontecem devagar, um dia de cada vez. E tudo bem que seja assim.",
+      "Você não precisa mudar quem é para merecer coisas boas. Continue sendo você, porque ainda há muito para viver, aprender e conquistar.",
   },
   {
     id: 5,
