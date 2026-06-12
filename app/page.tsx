@@ -123,11 +123,24 @@ export default function Page() {
         </section>
 
         {/* Rodapé */}
-        <footer className="mt-auto pt-12">
-          <p className="text-[11px] font-light tracking-wide text-muted-foreground/40">
-            Feito por: Alex
-          </p>
-        </footer>
+        <footer className="fixed bottom-4 left-0 right-0 flex justify-center pointer-events-none">
+        <p
+            className="
+            text-xs
+            font-semibold
+            bg-gradient-to-r
+            from-zinc-200
+            via-zinc-400
+            to-red-500
+            bg-clip-text
+            text-transparent
+            opacity-70
+            tracking-wide
+          "
+        >
+          Feito por: Alex
+        </p>
+      </footer>
       </div>
 
       {/* Experiência imersiva da flor */}
