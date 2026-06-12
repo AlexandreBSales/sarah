@@ -15,10 +15,12 @@ const API = "https://sarah-backend-teji.onrender.com"
 
 function getVisitorId() {
   let id = localStorage.getItem("visitorId")
+
   if (!id) {
     id = Math.random().toString(36).substring(2, 10).toUpperCase()
     localStorage.setItem("visitorId", id)
   }
+
   return id
 }
 
@@ -33,25 +35,73 @@ export default function Page() {
 
   const hasFlowers = unlocked.length > 0
 
+  // =========================
+  // ENTRAR NO SISTEMA
+  // =========================
   async function handleEnter() {
     const id = getVisitorId()
+
     setVisitorId(id)
     setEntered(true)
 
-    // 🔥 TRACKING SÓ AO ENTRAR
-    fetch(`${API}/session/start`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        visitorId: id,
-        name: "Visitante",
-        userAgent: navigator.userAgent,
-        startedAt: Date.now(),
-        page: "flores-do-tempo"
+    try {
+      await fetch(`${API}/session/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          visitorId: id,
+          name: "Visitante",
+          userAgent: navigator.userAgent,
+          startedAt: Date.now(),
+          page: "flores-do-tempo"
+        })
       })
-    }).catch(console.error)
+    } catch (err) {
+      console.error("Erro session/start:", err)
+    }
   }
 
+  // =========================
+  // PING (STATUS ONLINE)
+  // =========================
+  useEffect(() => {
+    if (!entered || !visitorId) return
+
+    const interval = setInterval(() => {
+      fetch(`${API}/session/ping`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visitorId })
+      }).catch(() => {})
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [entered, visitorId])
+
+  // =========================
+  // SAÍDA DA PÁGINA (END SESSION)
+  // =========================
+  useEffect(() => {
+    const handleExit = () => {
+      if (!visitorId) return
+
+      navigator.sendBeacon(
+        `${API}/session/end`,
+        JSON.stringify({
+          visitorId,
+          endedAt: Date.now()
+        })
+      )
+    }
+
+    window.addEventListener("beforeunload", handleExit)
+
+    return () => {
+      window.removeEventListener("beforeunload", handleExit)
+    }
+  }, [visitorId])
+
+  // =========================
   function handleDiscover() {
     if (unlocked.length > 0) {
       setActive(unlocked[unlocked.length - 1])
@@ -77,7 +127,6 @@ export default function Page() {
             Uma experiência única te espera
           </p>
 
-          {/* BOTÃO ENTRAR */}
           <button
             onClick={handleEnter}
             className="mt-6 rounded-full bg-black px-10 py-3 text-white border border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)] transition hover:bg-purple-600"
