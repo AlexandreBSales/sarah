@@ -12,17 +12,41 @@ import type { Flower } from "@/types/flower"
 
 const FINAL_FLOWER_ID = flowers[flowers.length - 1].id
 
+const API = "https://sarah-backend-teji.onrender.com"
+
+function generateId() {
+  return Math.random().toString(36).substring(2, 10).toUpperCase()
+}
+
 export default function Page() {
   const { unlocked, timeline, ready } = useUnlockedFlowers()
   const [active, setActive] = useState<Flower | null>(null)
   const [showGarden, setShowGarden] = useState(false)
   const [showFinal, setShowFinal] = useState(false)
 
+  const [visitorId] = useState(() => generateId())
   const hasFlowers = unlocked.length > 0
 
-  function handleDiscover() {
+  async function handleDiscover() {
+    // 🔥 TRACKING AQUI (primeiro clique real do usuário)
+    try {
+      await fetch(`${API}/session/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          visitorId,
+          name: "Visitante",
+          userAgent: navigator.userAgent,
+          startedAt: Date.now(),
+          page: "flores-do-tempo"
+        })
+      })
+    } catch (err) {
+      console.error("Erro tracking:", err)
+    }
+
+    // sua lógica original continua intacta
     if (unlocked.length > 0) {
-      // Abre a flor mais recente liberada
       setActive(unlocked[unlocked.length - 1])
     }
   }
@@ -34,7 +58,8 @@ export default function Page() {
       <div className="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-primary/10 blur-[120px]" />
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col items-center safe-px safe-pt safe-pb">
-        {/* Cabeçalho / Tela inicial */}
+
+        {/* Cabeçalho */}
         <motion.header
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -49,9 +74,11 @@ export default function Page() {
           >
             🌸
           </motion.div>
+
           <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-foreground text-glow">
             Flores do Tempo
           </h1>
+
           <p className="mt-3 text-pretty text-base leading-relaxed text-muted-foreground">
             Uma nova flor aparecerá a cada dia.
           </p>
@@ -67,13 +94,14 @@ export default function Page() {
           <button
             type="button"
             onClick={handleDiscover}
-            disabled={!ready || !hasFlowers}
+            disabled={!ready}
             className="group relative flex w-full items-center justify-center overflow-hidden rounded-full border border-primary/40 bg-primary px-8 py-4 text-base font-medium text-primary-foreground transition-all duration-300 active:scale-[0.97] disabled:opacity-50"
           >
             <span
               className="pointer-events-none absolute inset-0 bg-primary/40 blur-xl"
               style={{ animation: "pulse-glow 4s ease-in-out infinite" }}
             />
+
             <span className="relative">
               {hasFlowers ? "Descobrir Flor" : "Em breve"}
             </span>
@@ -90,7 +118,7 @@ export default function Page() {
           )}
         </motion.div>
 
-        {/* Jardim de flores liberadas */}
+        {/* Jardim */}
         <AnimatePresence>
           {showGarden && hasFlowers && (
             <motion.div
@@ -114,7 +142,7 @@ export default function Page() {
           )}
         </AnimatePresence>
 
-        {/* Linha do tempo */}
+        {/* Timeline */}
         <section className="mt-12 w-full">
           <h2 className="mb-4 text-center text-xs uppercase tracking-[0.22em] text-muted-foreground">
             Linha do tempo
@@ -122,28 +150,16 @@ export default function Page() {
           <DayTimeline timeline={timeline} onSelect={setActive} />
         </section>
 
-        {/* Rodapé */}
+        {/* Footer */}
         <footer className="fixed bottom-4 left-0 right-0 flex justify-center pointer-events-none">
-        <p
-            className="
-            text-xs
-            font-semibold
-            bg-gradient-to-r
-            from-zinc-200
-            via-zinc-400
-            to-red-500
-            bg-clip-text
-            text-transparent
-            opacity-70
-            tracking-wide
-          "
-        >
-          Feito por: Alex
-        </p>
-      </footer>
+          <p className="text-xs font-semibold bg-gradient-to-r from-zinc-200 via-zinc-400 to-red-500 bg-clip-text text-transparent opacity-70 tracking-wide">
+            Feito por: Alex
+          </p>
+        </footer>
+
       </div>
 
-      {/* Experiência imersiva da flor */}
+      {/* Viewer */}
       <FlowerViewer
         flower={active}
         finalFlowerId={FINAL_FLOWER_ID}
@@ -154,7 +170,7 @@ export default function Page() {
         }}
       />
 
-      {/* Evento especial do dia 7 */}
+      {/* Final */}
       <FinalReveal open={showFinal} onClose={() => setShowFinal(false)} />
     </main>
   )
