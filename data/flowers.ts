@@ -3,7 +3,7 @@ import type { Flower } from "@/types/flower"
 export const flowers: Flower[] = [
   {
     id: 1,
-    name: "Rosa Roxa",
+    name: "Rosa",
     image: "/flowers/rosa-roxa.png",
     unlockDate: "2026-06-12",
     message:
@@ -11,7 +11,7 @@ export const flowers: Flower[] = [
   },
   {
     id: 2,
-    name: "Orquídea Roxa",
+    name: "Orquídea",
     image: "/flowers/orquidea-roxa.png",
     unlockDate: "2026-06-13",
     message:
@@ -35,7 +35,7 @@ export const flowers: Flower[] = [
   },
   {
     id: 5,
-    name: "Hortênsia Roxa",
+    name: "Hortênsia",
     image: "/flowers/hortensia-roxa.png",
     unlockDate: "2026-06-16",
     message:
