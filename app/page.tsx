@@ -162,79 +162,106 @@ export default function Page() {
   // ENTRY SCREEN
   // =========================
   if (!entered) {
-    return (
-      <main className="flex min-h-dvh items-center justify-center bg-black text-white">
+return (
+  <main className="relative min-h-dvh overflow-hidden bg-gradient-to-b from-black via-zinc-950 to-purple-950 text-white">
+
+    {/* Glow Superior */}
+    <div className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-purple-500/20 blur-[150px]" />
+
+    {/* Glow Inferior */}
+    <div className="pointer-events-none absolute bottom-0 left-1/2 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-fuchsia-500/10 blur-[140px]" />
+
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 py-6">
+
+      {/* HEADER */}
+      <motion.header
+        initial={{ opacity: 0, y: -25 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center text-center"
+      >
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
+          animate={{
+            y: [0, -8, 0]
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 4
+          }}
+          className="text-7xl"
         >
-          <h1 className="text-3xl font-semibold text-purple-400">
-            Flores do Tempo
-          </h1>
-
-          <p className="mt-2 text-sm text-zinc-400">
-            Uma experiência única te espera
-          </p>
-
-          <button
-            onClick={handleEnter}
-            className="mt-6 rounded-full bg-black px-10 py-3 border border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:bg-purple-600"
-          >
-            Entrar
-          </button>
+          🌸
         </motion.div>
-      </main>
-    )
-  }
 
-  // =========================
-  // MAIN
-  // =========================
-  return (
-    <main className="relative min-h-dvh overflow-hidden bg-background">
+        <h1 className="mt-4 text-5xl font-bold bg-gradient-to-r from-purple-300 via-fuchsia-400 to-purple-500 bg-clip-text text-transparent">
+          Flores do Tempo
+        </h1>
 
-      <div className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/15 blur-[120px]" />
+        <p className="mt-3 text-purple-200">
+          Bem-vinda, <span className="font-semibold">{displayName}</span>
+        </p>
 
-      <div className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col items-center safe-px safe-pt safe-pb">
+        <p className="mt-2 max-w-xs text-sm text-zinc-400">
+          Cada dia revela uma nova flor, um novo significado e uma nova lembrança.
+        </p>
+      </motion.header>
 
-        <header className="flex flex-col items-center pt-6 text-center">
-          <div className="text-5xl">🌸</div>
-          <h1 className="mt-5 text-4xl font-semibold">Flores do Tempo</h1>
+      {/* CARD PRINCIPAL */}
+      <motion.div
+        initial={{ opacity: 0, y: 25 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-10 w-full rounded-3xl border border-purple-500/20 bg-white/5 backdrop-blur-xl p-5 shadow-[0_0_40px_rgba(168,85,247,0.15)]"
+      >
+        <button
+          onClick={handleDiscover}
+          className="
+            w-full
+            rounded-2xl
+            bg-gradient-to-r
+            from-purple-600
+            to-fuchsia-600
+            px-8
+            py-4
+            text-lg
+            font-semibold
+            transition-all
+            hover:scale-[1.02]
+            hover:shadow-[0_0_25px_rgba(168,85,247,0.6)]
+          "
+        >
+          {hasFlowers ? "🌺 Descobrir Flor" : "⏳ Em breve"}
+        </button>
 
-          {/* 👇 DISPLAY NAME FUTURO DO BOT */}
-          <p className="mt-2 text-purple-300 text-sm">
-            Olá, {displayName}
-          </p>
+        <div className="mt-8 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <h2 className="mb-4 text-center text-sm uppercase tracking-widest text-purple-300">
+            Linha do Tempo
+          </h2>
 
-          <p className="mt-2 text-muted-foreground">
-            Uma nova flor aparecerá a cada dia.
-          </p>
-        </header>
-
-        <div className="mt-9 w-full">
-          <button
-            onClick={handleDiscover}
-            className="w-full rounded-full bg-primary px-8 py-4 text-white"
-          >
-            {hasFlowers ? "Descobrir Flor" : "Em breve"}
-          </button>
+          <DayTimeline
+            timeline={timeline}
+            onSelect={setActive}
+          />
         </div>
+      </motion.div>
 
-        <section className="mt-12 w-full">
-          <DayTimeline timeline={timeline} onSelect={setActive} />
-        </section>
+      {/* RODAPÉ */}
+      <footer className="mt-auto pt-10 pb-4 text-center">
+        <p className="text-xs text-zinc-500">
+          Feito por <span className="text-purple-400 font-medium">Alex</span>
+        </p>
+      </footer>
+    </div>
 
-      </div>
+    <FlowerViewer
+      flower={active}
+      finalFlowerId={FINAL_FLOWER_ID}
+      onClose={() => setActive(null)}
+      onFinalReveal={() => setShowFinal(true)}
+    />
 
-      <FlowerViewer
-        flower={active}
-        finalFlowerId={FINAL_FLOWER_ID}
-        onClose={() => setActive(null)}
-        onFinalReveal={() => setShowFinal(true)}
-      />
-
-      <FinalReveal open={showFinal} onClose={() => setShowFinal(false)} />
-    </main>
-  )
+    <FinalReveal
+      open={showFinal}
+      onClose={() => setShowFinal(false)}
+    />
+  </main>
+)
 }
