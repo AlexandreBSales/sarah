@@ -12,6 +12,9 @@ import type { Flower } from "@/types/flower"
 const FINAL_FLOWER_ID = flowers[flowers.length - 1].id
 const API = "https://sarah-backend-teji.onrender.com"
 
+// =========================
+// ID DO VISITANTE
+// =========================
 function getVisitorId() {
   let id = localStorage.getItem("visitorId")
 
@@ -32,12 +35,12 @@ export default function Page() {
   const [showFinal, setShowFinal] = useState(false)
 
   const sessionStart = useRef<number>(0)
-  const sessionSent = useRef(false)
+  const sessionEnded = useRef(false)
 
   const hasFlowers = unlocked.length > 0
 
   // =========================
-  // ENTRAR NA SESSÃO
+  // START SESSION
   // =========================
   async function handleEnter() {
     if (entered) return
@@ -48,7 +51,7 @@ export default function Page() {
     setEntered(true)
 
     sessionStart.current = Date.now()
-    sessionSent.current = false
+    sessionEnded.current = false
 
     try {
       await fetch(`${API}/session/start`, {
@@ -67,12 +70,12 @@ export default function Page() {
   }
 
   // =========================
-  // FINALIZAR SESSÃO (FUNÇÃO CENTRAL)
+  // END SESSION (ROBUSTO)
   // =========================
   function endSession(reason: string) {
-    if (!visitorId || sessionSent.current) return
+    if (!visitorId || sessionEnded.current) return
 
-    sessionSent.current = true
+    sessionEnded.current = true
 
     const endedAt = Date.now()
     const duration = endedAt - sessionStart.current
@@ -84,30 +87,57 @@ export default function Page() {
       reason
     }
 
-    navigator.sendBeacon(
-      `${API}/session/end`,
-      new Blob([JSON.stringify(payload)], { type: "application/json" })
-    )
+    fetch(`${API}/session/end`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      keepalive: true
+    }).catch(() => {})
   }
 
   // =========================
-  // FECHAR ABA / TROCAR DE PÁGINA
+  // TRACKING CONTÍNUO (PING)
   // =========================
   useEffect(() => {
-    const handleBeforeUnload = () => endSession("beforeunload")
+    if (!entered || !visitorId) return
 
+    const interval = setInterval(() => {
+      fetch(`${API}/session/ping`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visitorId })
+      }).catch(() => {})
+    }, 15000)
+
+    return () => clearInterval(interval)
+  }, [entered, visitorId])
+
+  // =========================
+  // DETECÇÃO DE SAÍDA REAL
+  // =========================
+  useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "hidden") {
-        endSession("visibilitychange")
+        endSession("visibility_hidden")
       }
     }
 
-    window.addEventListener("beforeunload", handleBeforeUnload)
+    const handlePageHide = () => {
+      endSession("pagehide")
+    }
+
+    const handleBlur = () => {
+      endSession("blur")
+    }
+
     document.addEventListener("visibilitychange", handleVisibility)
+    window.addEventListener("pagehide", handlePageHide)
+    window.addEventListener("blur", handleBlur)
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload)
       document.removeEventListener("visibilitychange", handleVisibility)
+      window.removeEventListener("pagehide", handlePageHide)
+      window.removeEventListener("blur", handleBlur)
     }
   }, [visitorId])
 
@@ -119,7 +149,7 @@ export default function Page() {
   }
 
   // =========================
-  // TELA INICIAL
+  // TELA DE ENTRADA
   // =========================
   if (!entered) {
     return (
