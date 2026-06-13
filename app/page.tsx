@@ -61,7 +61,7 @@ export default function Page() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           visitorId: id,
-          displayName, // 👈 AGORA TEM NOME EDITÁVEL PELO BOT
+          displayName, 
           userAgent: navigator.userAgent,
           page: "flores-do-tempo",
           startedAt: sessionStart.current
@@ -248,7 +248,7 @@ if (!entered) {
           transition={{ delay: 0.4 }}
           className="mt-4 text-center text-zinc-300"
         >
-          Uma experiência única te espera.
+          Um presente pra um dia especial não se passar em vão.
         </motion.p>
 
         <motion.p
@@ -257,7 +257,7 @@ if (!entered) {
           transition={{ delay: 0.6 }}
           className="mt-2 text-center text-sm text-zinc-500"
         >
-          Cada dia revela uma nova flor, um novo significado e uma nova lembrança.
+          Cada dia revela uma nova flor, um novo significado e uma nova lembrança (eu espero kkkk).
         </motion.p>
 
         <motion.button
@@ -279,7 +279,7 @@ if (!entered) {
             transition-all
           "
         >
-          ✨ Entrar
+          Entrar
         </motion.button>
       </motion.div>
 
@@ -287,7 +287,7 @@ if (!entered) {
       <footer className="absolute bottom-5 text-center">
         <p className="text-xs text-zinc-500">
           Feito por{" "}
-          <span className="font-medium text-purple-400">
+          <span className="font-medium text-darkred-400">
             Alex
           </span>
         </p>
@@ -317,15 +317,15 @@ return (
           }}
           className="text-5xl"
         >
-          🌸
+          
         </motion.div>
 
         <h1 className="mt-5 text-4xl font-semibold">
-          Flores do Tempo
+          Bloom
         </h1>
 
         <p className="mt-2 text-purple-300 text-sm">
-          Olá, {displayName}
+          Olá, Sarah.
         </p>
 
         <p className="mt-2 text-muted-foreground">
