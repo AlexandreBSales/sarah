@@ -208,7 +208,6 @@ if (!entered) {
           shadow-[0_0_50px_rgba(168,85,247,0.15)]
         "
       >
-
         <motion.div
           animate={{
             y: [0, -10, 0],
@@ -262,12 +261,8 @@ if (!entered) {
         </motion.p>
 
         <motion.button
-          whileHover={{
-            scale: 1.03
-          }}
-          whileTap={{
-            scale: 0.97
-          }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           onClick={handleEnter}
           className="
             mt-8
@@ -286,7 +281,6 @@ if (!entered) {
         >
           ✨ Entrar
         </motion.button>
-
       </motion.div>
 
       {/* Rodapé */}
@@ -298,7 +292,102 @@ if (!entered) {
           </span>
         </p>
       </footer>
-
     </main>
   )
+}
+
+// =========================
+// MAIN
+// =========================
+return (
+  <main className="relative min-h-dvh overflow-hidden bg-background">
+
+    <div className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/15 blur-[120px]" />
+
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col items-center safe-px safe-pt safe-pb">
+
+      <header className="flex flex-col items-center pt-6 text-center">
+        <motion.div
+          animate={{
+            y: [0, -5, 0]
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 4
+          }}
+          className="text-5xl"
+        >
+          🌸
+        </motion.div>
+
+        <h1 className="mt-5 text-4xl font-semibold">
+          Flores do Tempo
+        </h1>
+
+        <p className="mt-2 text-purple-300 text-sm">
+          Olá, {displayName}
+        </p>
+
+        <p className="mt-2 text-muted-foreground">
+          Uma nova flor aparecerá a cada dia.
+        </p>
+      </header>
+
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-9 w-full"
+      >
+        <button
+          onClick={handleDiscover}
+          className="
+            w-full
+            rounded-full
+            bg-gradient-to-r
+            from-purple-600
+            to-fuchsia-600
+            px-8
+            py-4
+            text-white
+            font-medium
+            transition-all
+            hover:scale-[1.02]
+          "
+        >
+          {hasFlowers ? "🌺 Descobrir Flor" : "⏳ Em breve"}
+        </button>
+      </motion.div>
+
+      <section className="mt-12 w-full">
+        <DayTimeline
+          timeline={timeline}
+          onSelect={setActive}
+        />
+      </section>
+
+      <footer className="mt-auto py-6 text-center">
+        <p className="text-xs text-zinc-500">
+          Feito por{" "}
+          <span className="font-medium text-purple-400">
+            Alex
+          </span>
+        </p>
+      </footer>
+
+    </div>
+
+    <FlowerViewer
+      flower={active}
+      finalFlowerId={FINAL_FLOWER_ID}
+      onClose={() => setActive(null)}
+      onFinalReveal={() => setShowFinal(true)}
+    />
+
+    <FinalReveal
+      open={showFinal}
+      onClose={() => setShowFinal(false)}
+    />
+
+  </main>
+)
 }
