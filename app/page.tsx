@@ -1,7 +1,7 @@
 "use client"
 
 import { AnimatePresence, motion } from "framer-motion"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { DayTimeline } from "@/components/DayTimeline"
 import { FinalReveal } from "@/components/FinalReveal"
 import { FlowerCard } from "@/components/FlowerCard"
@@ -25,7 +25,7 @@ function getVisitorId() {
 }
 
 export default function Page() {
-  const { unlocked, timeline, ready } = useUnlockedFlowers()
+  const { unlocked, timeline } = useUnlockedFlowers()
 
   const [entered, setEntered] = useState(false)
   const [visitorId, setVisitorId] = useState("")
@@ -33,10 +33,12 @@ export default function Page() {
   const [showGarden, setShowGarden] = useState(false)
   const [showFinal, setShowFinal] = useState(false)
 
+  const sessionStart = useRef<number>(0)
+
   const hasFlowers = unlocked.length > 0
 
   // =========================
-  // ENTRAR NO SISTEMA
+  // ENTRAR
   // =========================
   async function handleEnter() {
     const id = getVisitorId()
@@ -44,25 +46,26 @@ export default function Page() {
     setVisitorId(id)
     setEntered(true)
 
+    sessionStart.current = Date.now()
+
     try {
       await fetch(`${API}/session/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           visitorId: id,
-          name: "Visitante",
           userAgent: navigator.userAgent,
-          startedAt: Date.now(),
+          startedAt: sessionStart.current,
           page: "flores-do-tempo"
         })
       })
     } catch (err) {
-      console.error("Erro session/start:", err)
+      console.error("session/start error:", err)
     }
   }
 
   // =========================
-  // PING (STATUS ONLINE)
+  // PING (ONLINE STATUS)
   // =========================
   useEffect(() => {
     if (!entered || !visitorId) return
@@ -73,31 +76,34 @@ export default function Page() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ visitorId })
       }).catch(() => {})
-    }, 5000)
+    }, 10000)
 
     return () => clearInterval(interval)
   }, [entered, visitorId])
 
   // =========================
-  // SAÍDA DA PÁGINA (END SESSION)
+  // FINALIZAR SESSÃO
   // =========================
   useEffect(() => {
-    const handleExit = () => {
+    const endSession = () => {
       if (!visitorId) return
+
+      const duration = Date.now() - sessionStart.current
 
       navigator.sendBeacon(
         `${API}/session/end`,
         JSON.stringify({
           visitorId,
-          endedAt: Date.now()
+          endedAt: Date.now(),
+          duration
         })
       )
     }
 
-    window.addEventListener("beforeunload", handleExit)
+    window.addEventListener("beforeunload", endSession)
 
     return () => {
-      window.removeEventListener("beforeunload", handleExit)
+      window.removeEventListener("beforeunload", endSession)
     }
   }, [visitorId])
 
@@ -109,7 +115,7 @@ export default function Page() {
   }
 
   // =========================
-  // TELA DE ENTRADA
+  // ENTRADA
   // =========================
   if (!entered) {
     return (
@@ -129,7 +135,7 @@ export default function Page() {
 
           <button
             onClick={handleEnter}
-            className="mt-6 rounded-full bg-black px-10 py-3 text-white border border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)] transition hover:bg-purple-600"
+            className="mt-6 rounded-full bg-black px-10 py-3 border border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:bg-purple-600"
           >
             Entrar
           </button>
@@ -148,20 +154,14 @@ export default function Page() {
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col items-center safe-px safe-pt safe-pb">
 
-        {/* HEADER */}
         <header className="flex flex-col items-center pt-6 text-center">
           <div className="text-5xl">🌸</div>
-
-          <h1 className="mt-5 text-4xl font-semibold">
-            Flores do Tempo
-          </h1>
-
+          <h1 className="mt-5 text-4xl font-semibold">Flores do Tempo</h1>
           <p className="mt-3 text-muted-foreground">
             Uma nova flor aparecerá a cada dia.
           </p>
         </header>
 
-        {/* BOTÃO */}
         <div className="mt-9 w-full">
           <button
             onClick={handleDiscover}
@@ -171,35 +171,12 @@ export default function Page() {
           </button>
         </div>
 
-        {/* JARDIM */}
-        <AnimatePresence>
-          {showGarden && (
-            <motion.div className="w-full mt-6">
-              <div className="grid grid-cols-2 gap-4">
-                {unlocked.map((flower, index) => (
-                  <FlowerCard
-                    key={flower.id}
-                    flower={flower}
-                    index={index}
-                    onSelect={setActive}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* TIMELINE */}
         <section className="mt-12 w-full">
-          <h2 className="text-center text-xs text-muted-foreground">
-            Linha do tempo
-          </h2>
           <DayTimeline timeline={timeline} onSelect={setActive} />
         </section>
 
       </div>
 
-      {/* VIEWER */}
       <FlowerViewer
         flower={active}
         finalFlowerId={FINAL_FLOWER_ID}
