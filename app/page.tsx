@@ -287,7 +287,7 @@ if (!entered) {
       <footer className="absolute bottom-5 text-center">
         <p className="text-xs text-zinc-500">
           Feito por{" "}
-          <span className="font-medium text-darkred-400">
+          <span className="font-medium text-red-400">
             Alex
           </span>
         </p>
