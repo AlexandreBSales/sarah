@@ -158,62 +158,119 @@ export default function Page() {
     }
   }
 
-  // =========================
-  // ENTRY SCREEN
-  // =========================
-  if (!entered) {
-return (
-  <main className="relative min-h-dvh overflow-hidden bg-gradient-to-b from-black via-zinc-950 to-purple-950 text-white">
+// =========================
+// ENTRY SCREEN
+// =========================
+if (!entered) {
+  return (
+    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-gradient-to-b from-black via-zinc-950 to-purple-950 text-white">
 
-    {/* Glow Superior */}
-    <div className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-purple-500/20 blur-[150px]" />
+      {/* Glow principal */}
+      <motion.div
+        animate={{
+          scale: [1, 1.15, 1],
+          opacity: [0.3, 0.5, 0.3]
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity
+        }}
+        className="pointer-events-none absolute h-[500px] w-[500px] rounded-full bg-purple-500/20 blur-[150px]"
+      />
 
-    {/* Glow Inferior */}
-    <div className="pointer-events-none absolute bottom-0 left-1/2 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-fuchsia-500/10 blur-[140px]" />
+      {/* Glow secundário */}
+      <motion.div
+        animate={{
+          y: [0, -30, 0]
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity
+        }}
+        className="pointer-events-none absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full bg-fuchsia-500/10 blur-[120px]"
+      />
 
-    <div className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col items-center px-5 py-6">
-
-      {/* HEADER */}
-      <motion.header
-        initial={{ opacity: 0, y: -25 }}
+      {/* Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center text-center"
+        transition={{ duration: 0.8 }}
+        className="
+          relative
+          w-[90%]
+          max-w-md
+          rounded-[32px]
+          border
+          border-purple-500/20
+          bg-white/5
+          p-8
+          backdrop-blur-xl
+          shadow-[0_0_50px_rgba(168,85,247,0.15)]
+        "
       >
+
         <motion.div
           animate={{
-            y: [0, -8, 0]
+            y: [0, -10, 0],
+            rotate: [0, 3, -3, 0]
           }}
           transition={{
-            repeat: Infinity,
-            duration: 4
+            duration: 6,
+            repeat: Infinity
           }}
-          className="text-7xl"
+          className="text-center text-7xl"
         >
           🌸
         </motion.div>
 
-        <h1 className="mt-4 text-5xl font-bold bg-gradient-to-r from-purple-300 via-fuchsia-400 to-purple-500 bg-clip-text text-transparent">
-          Flores do Tempo
-        </h1>
-
-        <p className="mt-3 text-purple-200">
-          Bem-vinda, <span className="font-semibold">{displayName}</span>
-        </p>
-
-        <p className="mt-2 max-w-xs text-sm text-zinc-400">
-          Cada dia revela uma nova flor, um novo significado e uma nova lembrança.
-        </p>
-      </motion.header>
-
-      {/* CARD PRINCIPAL */}
-      <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mt-10 w-full rounded-3xl border border-purple-500/20 bg-white/5 backdrop-blur-xl p-5 shadow-[0_0_40px_rgba(168,85,247,0.15)]"
-      >
-        <button
-          onClick={handleDiscover}
+        <motion.h1
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
           className="
+            mt-4
+            text-center
+            text-5xl
+            font-bold
+            bg-gradient-to-r
+            from-purple-300
+            via-fuchsia-400
+            to-purple-500
+            bg-clip-text
+            text-transparent
+          "
+        >
+          Flores do Tempo
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="mt-4 text-center text-zinc-300"
+        >
+          Uma experiência única te espera.
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="mt-2 text-center text-sm text-zinc-500"
+        >
+          Cada dia revela uma nova flor, um novo significado e uma nova lembrança.
+        </motion.p>
+
+        <motion.button
+          whileHover={{
+            scale: 1.03
+          }}
+          whileTap={{
+            scale: 0.97
+          }}
+          onClick={handleEnter}
+          className="
+            mt-8
             w-full
             rounded-2xl
             bg-gradient-to-r
@@ -223,45 +280,25 @@ return (
             py-4
             text-lg
             font-semibold
+            shadow-[0_0_30px_rgba(168,85,247,0.45)]
             transition-all
-            hover:scale-[1.02]
-            hover:shadow-[0_0_25px_rgba(168,85,247,0.6)]
           "
         >
-          {hasFlowers ? "🌺 Descobrir Flor" : "⏳ Em breve"}
-        </button>
+          ✨ Entrar
+        </motion.button>
 
-        <div className="mt-8 rounded-2xl border border-white/10 bg-black/20 p-4">
-          <h2 className="mb-4 text-center text-sm uppercase tracking-widest text-purple-300">
-            Linha do Tempo
-          </h2>
-
-          <DayTimeline
-            timeline={timeline}
-            onSelect={setActive}
-          />
-        </div>
       </motion.div>
 
-      {/* RODAPÉ */}
-      <footer className="mt-auto pt-10 pb-4 text-center">
+      {/* Rodapé */}
+      <footer className="absolute bottom-5 text-center">
         <p className="text-xs text-zinc-500">
-          Feito por <span className="text-purple-400 font-medium">Alex</span>
+          Feito por{" "}
+          <span className="font-medium text-purple-400">
+            Alex
+          </span>
         </p>
       </footer>
-    </div>
 
-    <FlowerViewer
-      flower={active}
-      finalFlowerId={FINAL_FLOWER_ID}
-      onClose={() => setActive(null)}
-      onFinalReveal={() => setShowFinal(true)}
-    />
-
-    <FinalReveal
-      open={showFinal}
-      onClose={() => setShowFinal(false)}
-    />
-  </main>
-)
+    </main>
+  )
 }
