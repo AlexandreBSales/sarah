@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useEffect, useState, useRef } from "react"
 import { DayTimeline } from "@/components/DayTimeline"
 import { FinalReveal } from "@/components/FinalReveal"
-import { FlowerCard } from "@/components/FlowerCard"
 import { FlowerViewer } from "@/components/FlowerViewer"
 import { flowers } from "@/data/flowers"
 import { useUnlockedFlowers } from "@/hooks/useUnlockedFlowers"
@@ -30,23 +29,26 @@ export default function Page() {
   const [entered, setEntered] = useState(false)
   const [visitorId, setVisitorId] = useState("")
   const [active, setActive] = useState<Flower | null>(null)
-  const [showGarden, setShowGarden] = useState(false)
   const [showFinal, setShowFinal] = useState(false)
 
   const sessionStart = useRef<number>(0)
+  const sessionSent = useRef(false)
 
   const hasFlowers = unlocked.length > 0
 
   // =========================
-  // ENTRAR
+  // ENTRAR NA SESSÃO
   // =========================
   async function handleEnter() {
+    if (entered) return
+
     const id = getVisitorId()
 
     setVisitorId(id)
     setEntered(true)
 
     sessionStart.current = Date.now()
+    sessionSent.current = false
 
     try {
       await fetch(`${API}/session/start`, {
@@ -55,8 +57,8 @@ export default function Page() {
         body: JSON.stringify({
           visitorId: id,
           userAgent: navigator.userAgent,
-          startedAt: sessionStart.current,
-          page: "flores-do-tempo"
+          page: "flores-do-tempo",
+          startedAt: sessionStart.current
         })
       })
     } catch (err) {
@@ -65,45 +67,47 @@ export default function Page() {
   }
 
   // =========================
-  // PING (ONLINE STATUS)
+  // FINALIZAR SESSÃO (FUNÇÃO CENTRAL)
   // =========================
-  useEffect(() => {
-    if (!entered || !visitorId) return
+  function endSession(reason: string) {
+    if (!visitorId || sessionSent.current) return
 
-    const interval = setInterval(() => {
-      fetch(`${API}/session/ping`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ visitorId })
-      }).catch(() => {})
-    }, 10000)
+    sessionSent.current = true
 
-    return () => clearInterval(interval)
-  }, [entered, visitorId])
+    const endedAt = Date.now()
+    const duration = endedAt - sessionStart.current
 
-  // =========================
-  // FINALIZAR SESSÃO
-  // =========================
-  useEffect(() => {
-    const endSession = () => {
-      if (!visitorId) return
-
-      const duration = Date.now() - sessionStart.current
-
-      navigator.sendBeacon(
-        `${API}/session/end`,
-        JSON.stringify({
-          visitorId,
-          endedAt: Date.now(),
-          duration
-        })
-      )
+    const payload = {
+      visitorId,
+      endedAt,
+      duration,
+      reason
     }
 
-    window.addEventListener("beforeunload", endSession)
+    navigator.sendBeacon(
+      `${API}/session/end`,
+      new Blob([JSON.stringify(payload)], { type: "application/json" })
+    )
+  }
+
+  // =========================
+  // FECHAR ABA / TROCAR DE PÁGINA
+  // =========================
+  useEffect(() => {
+    const handleBeforeUnload = () => endSession("beforeunload")
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        endSession("visibilitychange")
+      }
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    document.addEventListener("visibilitychange", handleVisibility)
 
     return () => {
-      window.removeEventListener("beforeunload", endSession)
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+      document.removeEventListener("visibilitychange", handleVisibility)
     }
   }, [visitorId])
 
@@ -115,7 +119,7 @@ export default function Page() {
   }
 
   // =========================
-  // ENTRADA
+  // TELA INICIAL
   // =========================
   if (!entered) {
     return (
@@ -181,10 +185,7 @@ export default function Page() {
         flower={active}
         finalFlowerId={FINAL_FLOWER_ID}
         onClose={() => setActive(null)}
-        onFinalReveal={() => {
-          setActive(null)
-          setShowFinal(true)
-        }}
+        onFinalReveal={() => setShowFinal(true)}
       />
 
       <FinalReveal open={showFinal} onClose={() => setShowFinal(false)} />
