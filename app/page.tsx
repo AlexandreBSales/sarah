@@ -13,7 +13,7 @@ const FINAL_FLOWER_ID = flowers[flowers.length - 1].id
 const API = "https://sarah-backend-teji.onrender.com"
 
 // =========================
-// ID DO VISITANTE
+// VISITOR ID
 // =========================
 function getVisitorId() {
   let id = localStorage.getItem("visitorId")
@@ -31,6 +31,8 @@ export default function Page() {
 
   const [entered, setEntered] = useState(false)
   const [visitorId, setVisitorId] = useState("")
+  const [displayName, setDisplayName] = useState("Visitante")
+
   const [active, setActive] = useState<Flower | null>(null)
   const [showFinal, setShowFinal] = useState(false)
 
@@ -59,6 +61,7 @@ export default function Page() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           visitorId: id,
+          displayName, // 👈 AGORA TEM NOME EDITÁVEL PELO BOT
           userAgent: navigator.userAgent,
           page: "flores-do-tempo",
           startedAt: sessionStart.current
@@ -70,7 +73,7 @@ export default function Page() {
   }
 
   // =========================
-  // END SESSION (ROBUSTO)
+  // END SESSION (COM SEGUNDOS REAL)
   // =========================
   function endSession(reason: string) {
     if (!visitorId || sessionEnded.current) return
@@ -78,12 +81,16 @@ export default function Page() {
     sessionEnded.current = true
 
     const endedAt = Date.now()
-    const duration = endedAt - sessionStart.current
+    const durationMs = endedAt - sessionStart.current
+    const durationSeconds = Math.floor(durationMs / 1000)
 
     const payload = {
       visitorId,
+      displayName,
+      startedAt: sessionStart.current,
       endedAt,
-      duration,
+      durationMs,
+      durationSeconds,
       reason
     }
 
@@ -96,7 +103,7 @@ export default function Page() {
   }
 
   // =========================
-  // TRACKING CONTÍNUO (PING)
+  // PING (ONLINE STATUS)
   // =========================
   useEffect(() => {
     if (!entered || !visitorId) return
@@ -105,7 +112,10 @@ export default function Page() {
       fetch(`${API}/session/ping`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ visitorId })
+        body: JSON.stringify({
+          visitorId,
+          lastSeen: Date.now()
+        })
       }).catch(() => {})
     }, 15000)
 
@@ -113,12 +123,12 @@ export default function Page() {
   }, [entered, visitorId])
 
   // =========================
-  // DETECÇÃO DE SAÍDA REAL
+  // DETECÇÃO DE SAÍDA
   // =========================
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "hidden") {
-        endSession("visibility_hidden")
+        endSession("tab_hidden")
       }
     }
 
@@ -149,7 +159,7 @@ export default function Page() {
   }
 
   // =========================
-  // TELA DE ENTRADA
+  // ENTRY SCREEN
   // =========================
   if (!entered) {
     return (
@@ -179,7 +189,7 @@ export default function Page() {
   }
 
   // =========================
-  // SITE PRINCIPAL
+  // MAIN
   // =========================
   return (
     <main className="relative min-h-dvh overflow-hidden bg-background">
@@ -191,7 +201,13 @@ export default function Page() {
         <header className="flex flex-col items-center pt-6 text-center">
           <div className="text-5xl">🌸</div>
           <h1 className="mt-5 text-4xl font-semibold">Flores do Tempo</h1>
-          <p className="mt-3 text-muted-foreground">
+
+          {/* 👇 DISPLAY NAME FUTURO DO BOT */}
+          <p className="mt-2 text-purple-300 text-sm">
+            Olá, {displayName}
+          </p>
+
+          <p className="mt-2 text-muted-foreground">
             Uma nova flor aparecerá a cada dia.
           </p>
         </header>
