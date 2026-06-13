@@ -148,6 +148,19 @@ export default function Page() {
     )
   }
 
+  console.log("ENTRANDO NO SITE")
+
+await fetch(`${API}/session/start`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    visitorId: id,
+    userAgent: navigator.userAgent,
+    startedAt: Date.now(),
+    page: "flores-do-tempo"
+  })
+})
+
   // =========================
   // SITE PRINCIPAL
   // =========================
